@@ -3,6 +3,24 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 
+/*获取当前git 提交次数来作为versionCode
+获取最后一次git 提交的commitId 和 提交日期来拼接称为 versionName*/
+def gitCommitCount = Integer.parseInt('git rev-list HEAD --count'.execute().text.trim())
+def gitSHA = ('git rev-parse --short HEAD'.execute().text.trim())
+String time = getTime()
+//def gitCurrentTag = 'git describe --tags --abbrev=0'.execute([], project.rootDir).text.trim()
+def gitCurrentTag = '1.0.' + gitCommitCount + "." + gitSHA + "." + time
+println("gitCurrentTag = " + gitCurrentTag)
+println("gitCommitCount = " + gitCommitCount)
+
+/*获取当前的打包时间，写进apk打包后命名信息内，方便辨别apk打包时间*/
+import java.text.SimpleDateFormat
+//需要手动设置时区，否则在不同的Android Studio 环境中可能导致运行出错
+SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMdd_HHmm_")
+simpleDateFormat.setTimeZone(TimeZone.getTimeZone("GMT+08:00"))
+Date date = new Date()
+String datetime = simpleDateFormat.format(date)
+def currentTime = "_" + datetime
 
 def androidSettings = rootProject.ext.android
 
@@ -16,8 +34,8 @@ android {
         applicationId androidSettings.applicationId
         minSdk androidSettings.minSdkVersion
         targetSdk androidSettings.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode gitCommitCount
+        versionName gitCurrentTag
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -39,6 +57,29 @@ android {
     }
 
 
+    //添加apk打包命名与打包后复制到指定目录下
+    android.applicationVariants.all { variant ->
+        variant.outputs.all {
+            //指定apk打包命名
+//            outputFileName = 'MyProject_' + "${currentTime}${variant.name}-${variant.versionName}.apk"
+            outputFileName = 'MyProject_' + "${currentTime}${variant.name}.apk"
+        }
+        def appName = "MyProject"
+        //指定apk打包后需要复制的目录路径
+        def outputFilePath = "${rootDir.absolutePath}/apk/$appName/${variant.buildType.name}"
+        File outputFile = new File(outputFilePath)
+        variant.assemble.doLast {
+            copy {
+                variant.outputs.all { file ->
+                    copy {
+                        from file.outputFile
+                        into outputFile
+                    }
+                }
+            }
+        }
+
+    }
 }
 def depends = rootProject.ext.depends
 dependencies {
@@ -50,4 +91,15 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+}
+
+String getTime() {
+    String time = (('git log --pretty=format:%ci HEAD -1'.execute().text.trim()).split(" ")[0])
+    String[] timeSplit = time.split("-")
+    String realTime = ""
+    for (int i = 0; i < timeSplit.length; i++) {
+        realTime = realTime + timeSplit[i]
+    }
+    println("time = " + time + ", realTime = " + realTime)
+    return realTime
 }

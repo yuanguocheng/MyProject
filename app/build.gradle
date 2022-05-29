@@ -1,6 +1,9 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    /*使用Composing builds来管理依赖库，
+    但是目前尝试之后无法自动补全，暂时使用buildSrc的方式*/
+//    id 'com.example.configplugin'
 }
 
 /*获取当前git 提交次数来作为versionCode

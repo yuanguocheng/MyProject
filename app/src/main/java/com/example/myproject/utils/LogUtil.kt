@@ -23,8 +23,8 @@ object LogUtil {
     private val IS_DEBUG = BuildConfig.DEBUG
     var TAG = "MyProject"
 
-    const val logMaxLength = 2000
-    const val logShowMaxRow = 100
+    private const val logMaxLength = 2000
+    private const val logShowMaxRow = 100
 
     /**
      * debug message

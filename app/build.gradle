@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'kotlin-kapt'
     /*使用Composing builds来管理依赖库，
     但是目前尝试之后无法自动补全，暂时使用buildSrc的方式*/
 //    id 'com.example.configplugin'
@@ -102,16 +103,24 @@ android {
                 }
             }
         }
-
     }
+
+    dataBinding {
+        enabled = true;
+    }
+
+    kapt {
+        generateStubs = true
+    }
+
 }
 
 dependencies {
 
     implementation Libs.kotlinx
     implementation Libs.constraintlayout
+    Libs.databinding_compiler
     implementation 'androidx.appcompat:appcompat:1.3.0'
-
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
